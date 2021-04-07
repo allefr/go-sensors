@@ -3,10 +3,13 @@
 package mcp9808
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
+	"github.com/allefr/go-sensors/env"
 	"github.com/allefr/go-sensors/utils"
 	"periph.io/x/periph/conn/i2c"
 	"periph.io/x/periph/host"
@@ -30,12 +33,6 @@ const (
 	devIdRegV = 0x0400
 )
 
-type Driver interface {
-	String() string
-	IsConnected() error
-	GetTemp() (float32, error)
-}
-
 type Params struct {
 	Bus  i2c.Bus
 	Addr uint16
@@ -48,7 +45,7 @@ type device struct {
 	name string
 }
 
-func New(p Params) (d Driver, err error) {
+func New(p Params) (d env.TempDriver, err error) {
 	_, err = host.Init()
 	if err != nil {
 		return
@@ -76,6 +73,20 @@ func New(p Params) (d Driver, err error) {
 
 func (d *device) String() string {
 	return d.name
+}
+
+func (d *device) StringJSON() (string, error) {
+	temp, err := d.GetTemp()
+	if err != nil {
+		return "", err
+	}
+	jOpt := env.TempDevice{
+		Time: time.Now().UTC().Format(time.RFC3339Nano),
+		Name: d.name,
+		Data: env.Temp{T: temp},
+	}
+	b, err := json.Marshal(jOpt)
+	return string(b), err
 }
 
 func (d *device) IsConnected() error {
@@ -133,4 +144,5 @@ func readUint16(d *device, reg int) (v uint16, err error) {
 	return
 }
 
-var _ Driver = &device{}
+// for validation only
+var _ env.TempDriver = &device{}

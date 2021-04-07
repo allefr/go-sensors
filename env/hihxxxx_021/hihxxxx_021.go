@@ -4,11 +4,13 @@
 package hihxxxx_021
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sync"
 	"time"
 
+	"github.com/allefr/go-sensors/env"
 	"github.com/allefr/go-sensors/utils"
 	"periph.io/x/periph/conn/i2c"
 	"periph.io/x/periph/host"
@@ -31,12 +33,6 @@ const (
 	isCommandMode
 )
 
-type Driver interface {
-	String() string
-	IsConnected() error
-	GetHumTemp() (float32, float32, error)
-}
-
 type Params struct {
 	Bus i2c.Bus
 }
@@ -48,7 +44,7 @@ type device struct {
 	name string
 }
 
-func New(p Params) (d Driver, err error) {
+func New(p Params) (d env.HumDriver, err error) {
 	_, err = host.Init()
 	if err != nil {
 		return
@@ -71,6 +67,22 @@ func New(p Params) (d Driver, err error) {
 
 func (d *device) String() string {
 	return d.name
+}
+
+func (d *device) StringJSON() (string, error) {
+	hum, temp, err := d.GetHumTemp()
+	if err != nil {
+		return "", err
+	}
+	jOpt := env.HumDevice{
+		Time: time.Now().UTC().Format(time.RFC3339Nano),
+		Name: d.name,
+		Data: env.Hum{
+			H: hum,
+			T: temp},
+	}
+	b, err := json.Marshal(jOpt)
+	return string(b), err
 }
 
 func (d *device) IsConnected() error {
@@ -113,4 +125,5 @@ func (d *device) GetHumTemp() (hum, temp float32, err error) {
 	return
 }
 
-var _ Driver = &device{}
+// for validation only
+var _ env.HumDriver = &device{}

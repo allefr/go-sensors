@@ -35,53 +35,38 @@ func main() {
 	if err != nil {
 		log.Fatalf("%s: %v\n", tS.String(), err)
 	}
-	t, err := tS.GetTemp()
-	if err != nil {
-		fmt.Printf("%s: %v\n", tS.String(), err)
-	}
-	fmt.Printf("%s temp: %.2f degC\n", tS.String(), t)
 
 	// hih6030
 	hS, err := hihxxxx_021.New(hihxxxx_021.Params{Bus: bus})
 	if err != nil {
 		log.Fatalf("%s: %v\n", hS.String(), err)
 	}
-	hum, temp, err := hS.GetHumTemp()
-	if err != nil {
-		fmt.Printf("%s: %v\n", hS.String(), err)
-	}
-	fmt.Printf("%s temp: %.2f degC; hum: %.2f%%\n", hS.String(), temp, hum)
 
 	// shtc3
 	hS2, err := shtc3.New(shtc3.Params{Bus: bus})
 	if err != nil {
 		log.Fatalf("%s: %v\n", hS2.String(), err)
 	}
-	hum2, temp2, err := hS2.GetHumTemp()
-	if err != nil {
-		fmt.Printf("%s: %v\n", hS2.String(), err)
-	}
-	fmt.Printf("%s temp: %.2f degC; hum: %.2f%%\n", hS2.String(), temp2, hum2)
 
 	// start infinite loop to query data
 	for {
-		t, err = tS.GetTemp()
-		if err != nil {
+		if str, err := tS.StringJSON(); err != nil {
 			fmt.Printf("%s: %v\n", tS.String(), err)
+		} else {
+			fmt.Println(str)
 		}
-		fmt.Printf("%s temp: %.2f degC\n", tS.String(), t)
 
-		hum, temp, err = hS.GetHumTemp()
-		if err != nil {
+		if str, err := hS.StringJSON(); err != nil {
 			fmt.Printf("%s: %v\n", hS.String(), err)
+		} else {
+			fmt.Println(str)
 		}
-		fmt.Printf("%s temp: %.2f degC; hum: %.2f%%\n", hS.String(), temp, hum)
 
-		hum2, temp2, err = hS2.GetHumTemp()
-		if err != nil {
+		if str, err := hS2.StringJSON(); err != nil {
 			fmt.Printf("%s: %v\n", hS2.String(), err)
+		} else {
+			fmt.Println(str)
 		}
-		fmt.Printf("%s temp: %.2f degC; hum: %.2f%%\n", hS2.String(), temp2, hum2)
 
 		// wait some time
 		time.Sleep(1 * time.Second)

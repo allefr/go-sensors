@@ -34,10 +34,10 @@ const (
 
 // cmds not using stretch
 const (
-	// tempHumNorm = 0x7866 // normal measurement, temp first with Clock Stretch Enabled
-	// tempHumLPS  = 0x609C // low power measurement, temp first with Clock Stretch Enabled
-	humTempNorm = 0x58E0 // normal measurement, hum first with Clock Stretch Enabled
-	// humTempLP   = 0x401A // low power measurement, hum first with Clock Stretch Enabled
+	// tempHumNorm = 0x7866 // normal measurement, temp first with Clock Stretch Disabled
+	// tempHumLPS  = 0x609C // low power measurement, temp first with Clock Stretch Disabled
+	humTempNorm = 0x58E0 // normal measurement, hum first with Clock Stretch Disabled
+	// humTempLP   = 0x401A // low power measurement, hum first with Clock Stretch Disabled
 )
 
 // cmds using stretch
@@ -49,7 +49,8 @@ const (
 // )
 
 type Params struct {
-	Bus i2c.Bus
+	Bus  i2c.Bus
+	Name string
 }
 
 type device struct {
@@ -67,13 +68,18 @@ func New(p Params) (d env.HumDriver, err error) {
 		return
 	}
 
+	// if name not provided, make one using i2c addr
+	n := "shtc3-" + fmt.Sprintf("0x%2.2x", Addr)
+	if p.Name != "" {
+		n = p.Name
+	}
+
 	d = &device{
 		conn: &i2c.Dev{
 			Bus:  p.Bus,
 			Addr: Addr,
 		},
-		// set name based on i2c addr
-		name: "shtc3-" + fmt.Sprintf("0x%2.2x", Addr),
+		name: n,
 	}
 
 	// check sensor is connected

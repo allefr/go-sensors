@@ -34,7 +34,8 @@ const (
 )
 
 type Params struct {
-	Bus i2c.Bus
+	Bus  i2c.Bus
+	Name string
 }
 
 type device struct {
@@ -50,13 +51,18 @@ func New(p Params) (d env.HumDriver, err error) {
 		return
 	}
 
+	// if name not provided, make one using i2c addr
+	n := "hih0000-021-" + fmt.Sprintf("0x%2.2x", Addr)
+	if p.Name != "" {
+		n = p.Name
+	}
+
 	d = &device{
 		conn: &i2c.Dev{
 			Bus:  p.Bus,
 			Addr: Addr,
 		},
-		// set name based on i2c addr
-		name: "hih0000-021-" + fmt.Sprintf("0x%2.2x", Addr),
+		name: n,
 	}
 
 	// check sensor is connected

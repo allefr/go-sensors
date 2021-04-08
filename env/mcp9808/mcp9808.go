@@ -36,6 +36,7 @@ const (
 type Params struct {
 	Bus  i2c.Bus
 	Addr uint16
+	Name string
 }
 
 type device struct {
@@ -56,13 +57,18 @@ func New(p Params) (d env.TempDriver, err error) {
 		return nil, wrongI2cAddr
 	}
 
+	// if name not provided, make one using i2c addr
+	n := "mcp9808-" + fmt.Sprintf("0x%2.2x", p.Addr)
+	if p.Name != "" {
+		n = p.Name
+	}
+
 	d = &device{
 		conn: &i2c.Dev{
 			Bus:  p.Bus,
 			Addr: p.Addr,
 		},
-		// set name based on i2c addr
-		name: "mcp9808-" + fmt.Sprintf("0x%2.2x", p.Addr),
+		name: n,
 	}
 
 	// check sensor is connected
